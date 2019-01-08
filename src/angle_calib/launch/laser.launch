@@ -1,0 +1,5 @@
+<launch>
+    <node pkg="angle_calib" type="angle_calib.py" name="scan_values" output="screen">
+        
+    </node>
+</launch>

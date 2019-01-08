@@ -11,9 +11,9 @@ from std_msgs.msg import String
  
 # --- definitions ---
 epsilon = 0.05   # allowed inaccuracy for distance calculation
-speed_rpm = 350
+speed_rpm = 150
 angle_left = 30
-angle_straight = 89
+angle_straight = 102
 angle_right = 150
 last_odom = None
 is_active = False
@@ -57,12 +57,12 @@ def callbackBackwardRight(msg):
  
 def callbackTicks(msg):
 	global ticks
-	ticks =ticks+msg.data
+	ticks =ticks+1 
  
 def drive(distance, command, speed, angle):
     global is_active
-    now = rospy.get_rostime() 
-    rospy.loginfo("%s: Running %s(%f) time: %i", rospy.get_caller_id(), command, distance,now.secs)
+ 
+    rospy.loginfo("%s: Running %s(%f)", rospy.get_caller_id(), command, distance)
     if distance <= 0:
         rospy.logerr(
             "%s: Error, distance argument has to be > 0! %f given",
@@ -104,13 +104,13 @@ def drive(distance, command, speed, angle):
     current_distance = sqrt((current_pos.x - start_pos.x)
                             ** 2 + (current_pos.y - start_pos.y)**2)
     pub_info.publish("FINISHED")
-    now2 = rospy.get_rostime()
+ 
     rospy.loginfo(
-        "%s: Finished %s(%f)\nActual travelled distance = %f Ticks: %f time: %i",
+        "%s: Finished %s(%f)\nActual travelled distance = %f %f",
         rospy.get_caller_id(),
         command,
         distance,
-        current_distance,ticks, now2.secs-now.secs)
+        current_distance,ticks)
  
  
 # --- main program ---

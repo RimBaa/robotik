@@ -1,5 +1,5 @@
 #!/usr/bin/env python
- 
+# coding=utf-8
 # --- imports ---
 import rospy
 from math import sqrt
@@ -8,17 +8,17 @@ from std_msgs.msg import Int16
 from std_msgs.msg import Float32
 from nav_msgs.msg import Odometry
 from std_msgs.msg import String
- 
+import pylab as py
 # --- definitions ---
 epsilon = 0.05   # allowed inaccuracy for distance calculation
-speed_rpm = 350
-angle_left = 30
-angle_straight = 89
-angle_right = 150
+speed_rpm = 150
 last_odom = None
 is_active = False
-ticks =0
- 
+distance = 0.30
+angle = 89
+time = [] 
+steer_value =[] 
+dist = 0
 def callbackOdom(msg):
     global last_odom
     last_odom = msg
@@ -32,37 +32,20 @@ def waitForFirstOdom():
         rospy.sleep(1.0)
  
  
-def callbackForward(msg):
-    drive(msg.data, "callbackForward", speed_rpm, angle_straight)
- 
- 
-def callbackBackward(msg):
-    drive(msg.data, "callbackBackward", -speed_rpm, angle_straight)
- 
- 
-def callbackForwardLeft(msg):
-    drive(msg.data, "callbackForwardLeft", speed_rpm, angle_left)
- 
- 
-def callbackForwardRight(msg):
-    drive(msg.data, "callbackForwardRight", speed_rpm, angle_right)
- 
- 
-def callbackBackwardLeft(msg):
-    drive(msg.data, "callbackBackwardLeft", -speed_rpm, angle_left)
- 
- 
-def callbackBackwardRight(msg):
-    drive(msg.data, "callbackBackwardRight", -speed_rpm, angle_right)
- 
-def callbackTicks(msg):
-	global ticks
-	ticks =ticks+msg.data
+def callbackForward(msg): 
+  
+   
+    now = rospy.get_rostime()
+    
+    #arrays for plotting
+    time.append(now.secs)
+    #steer_value.append(msg.data)
+    drive(distance, "callbackForward", speed_rpm, angle)
  
 def drive(distance, command, speed, angle):
     global is_active
-    now = rospy.get_rostime() 
-    rospy.loginfo("%s: Running %s(%f) time: %i", rospy.get_caller_id(), command, distance,now.secs)
+ 
+    rospy.loginfo("%s: Running %s(%f)", rospy.get_caller_id(), command, distance)
     if distance <= 0:
         rospy.logerr(
             "%s: Error, distance argument has to be > 0! %f given",
@@ -95,7 +78,6 @@ def drive(distance, command, speed, angle):
         current_pos = last_odom.pose.pose.position
         current_distance = sqrt(
             (current_pos.x - start_pos.x)**2 + (current_pos.y - start_pos.y)**2)
-        # rospy.loginfo("current distance = %f", current_distance)
         rospy.sleep(0.1)
  
     pub_speed.publish(0)
@@ -104,23 +86,14 @@ def drive(distance, command, speed, angle):
     current_distance = sqrt((current_pos.x - start_pos.x)
                             ** 2 + (current_pos.y - start_pos.y)**2)
     pub_info.publish("FINISHED")
-    now2 = rospy.get_rostime()
+        
     rospy.loginfo(
-        "%s: Finished %s(%f)\nActual travelled distance = %f Ticks: %f time: %i",
+        "%s: Finished %s(%f)\nActual travelled distance = %f %f",
         rospy.get_caller_id(),
         command,
         distance,
-        current_distance,ticks, now2.secs-now.secs)
- 
- 
-# --- main program ---
- 
- 
-# In ROS, nodes are uniquely named. If two nodes with the same
-# node are launched, the previous one is kicked off. The
-# anonymous=True flag means that rospy will choose a unique
-# name for our node so that multiple instances can
-# run simultaneously.
+        current_distance, angle)
+    rospy.loginfo("%s %s", time, steer_value) 
 rospy.init_node("simple_drive_control")
  
 # read parameters from parameter server (launch file or rosparam set), if
@@ -132,31 +105,20 @@ if rospy.has_param("speed_rpm"):
 sub_odom = rospy.Subscriber("odom", Odometry, callbackOdom, queue_size=100)
 # wait for first odometry message, till adverting subscription of commands
 waitForFirstOdom()
-sub_forward = rospy.Subscriber(
-    "simple_drive_control/forward", Float32, callbackForward, queue_size=10)
-sub_backward = rospy.Subscriber(
-    "simple_drive_control/backward", Float32, callbackBackward, queue_size=10)
-sub_forward_left = rospy.Subscriber(
-    "simple_drive_control/forward_left", Float32, callbackForwardLeft, queue_size=10)
-sub_forward_right = rospy.Subscriber(
-    "simple_drive_control/forward_right", Float32, callbackForwardRight, queue_size=10)
-sub_backward_left = rospy.Subscriber(
-    "simple_drive_control/backward_left", Float32, callbackBackwardLeft, queue_size=10)
-sub_backward_right = rospy.Subscriber(
-    "simple_drive_control/backward_right", Float32, callbackBackwardRight, queue_size=10)
-sub_tick = rospy.Subscriber("/ticks", UInt8, callbackTicks, queue_size = 1)
+#sub_forward = rospy.Subscriber(
+ #   "/steer", Float32, callbackForward, queue_size=10)
+
 pub_stop_start = rospy.Publisher(
     "manual_control/stop_start",
     Int16,
     queue_size=100)
 pub_speed = rospy.Publisher("manual_control/speed", Int16, queue_size=100)
-pub_steering = rospy.Publisher(
-    "steering",
-    UInt8,
-    queue_size=100)
+pub_steering = rospy.Publisher("steering",UInt8,queue_size=1)
 pub_info = rospy.Publisher("simple_drive_control/info", String, queue_size=100)
  
 rospy.loginfo(rospy.get_caller_id() + ": started!")
- 
-# spin() simply keeps python from exiting until this node is stopped
+ #plotting
+print time
+print steer_value
+py.plot(time, steer_value) 
 rospy.spin()
