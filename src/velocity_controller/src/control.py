@@ -36,7 +36,7 @@ def callbackTicks(msg):
 	now = rospy.get_time()
 	while(1):
 		now2 = rospy.get_time()
-		actual_ticks =actual_ticks+msg.data	
+		actual_ticks =actual_ticks+msg.data/(now2-now) #ticks in 1 sec	
 		rospy.loginfo("Ticks: %i",actual_ticks)
 		if(now2>=now):
 			callback_error()
