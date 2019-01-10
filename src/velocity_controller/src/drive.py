@@ -11,13 +11,14 @@ from std_msgs.msg import String
  
 # --- definitions ---
 epsilon = 0.05   # allowed inaccuracy for distance calculation
-speed_rpm = 150
+speed_rpm = 350
 angle_left = 30
-angle_straight = 102
+angle_straight = 89
 angle_right = 150
 last_odom = None
 is_active = False
 ticks =0
+distance =2.0
  
 def callbackOdom(msg):
     global last_odom
@@ -54,15 +55,17 @@ def callbackBackwardLeft(msg):
  
 def callbackBackwardRight(msg):
     drive(msg.data, "callbackBackwardRight", -speed_rpm, angle_right)
- 
-def callbackTicks(msg):
-	global ticks
-	ticks =ticks+1 
- 
+	 
+def callbackspeed(msg):
+	global distance
+	drive(distance, "callbackForward", msg.data, angle_straight)
+
 def drive(distance, command, speed, angle):
     global is_active
- 
-    rospy.loginfo("%s: Running %s(%f)", rospy.get_caller_id(), command, distance)
+    
+    now = rospy.get_rostime() 
+   
+    rospy.loginfo("%s: Running %s(%f) time: %i", rospy.get_caller_id(), command, distance,now.secs)
     if distance <= 0:
         rospy.logerr(
             "%s: Error, distance argument has to be > 0! %f given",
@@ -92,6 +95,7 @@ def drive(distance, command, speed, angle):
     current_distance = 0
  
     while not rospy.is_shutdown() and current_distance < (distance - epsilon):
+        pub_speed_control.publish(speed)
         current_pos = last_odom.pose.pose.position
         current_distance = sqrt(
             (current_pos.x - start_pos.x)**2 + (current_pos.y - start_pos.y)**2)
@@ -104,13 +108,13 @@ def drive(distance, command, speed, angle):
     current_distance = sqrt((current_pos.x - start_pos.x)
                             ** 2 + (current_pos.y - start_pos.y)**2)
     pub_info.publish("FINISHED")
- 
+    now2 = rospy.get_rostime()
     rospy.loginfo(
-        "%s: Finished %s(%f)\nActual travelled distance = %f %f",
+        "%s: Finished %s(%f)\nActual travelled distance = %f Ticks: %f time: %i",
         rospy.get_caller_id(),
         command,
         distance,
-        current_distance,ticks)
+        current_distance,ticks, now2.secs-now.secs)
  
  
 # --- main program ---
@@ -144,7 +148,12 @@ sub_backward_left = rospy.Subscriber(
     "simple_drive_control/backward_left", Float32, callbackBackwardLeft, queue_size=10)
 sub_backward_right = rospy.Subscriber(
     "simple_drive_control/backward_right", Float32, callbackBackwardRight, queue_size=10)
-sub_tick = rospy.Subscriber("/ticks", UInt8, callbackTicks, queue_size = 1)
+
+
+sub_speed_control = rospy.Subscriber("drive", Int16, callbackspeed, queue_size=10)
+pub_speed_control = rospy.Publisher("velocit", Int16, queue_size=1)
+sub_speed = rospy.Subscriber("velocity", Int16, callbackspeed, queue_size=10)
+
 pub_stop_start = rospy.Publisher(
     "manual_control/stop_start",
     Int16,
