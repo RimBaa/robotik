@@ -66,9 +66,10 @@ def find_point(point_input,lane, distance):
 			alpha_rad = alpha*math.pi/180
 			
 			#translation to the coordinate origin; rotation of the point; translation back
-			y =  (solution[0][0]-195.5)*math.cos(alpha_rad) + (-(solution[0][1]-215.5))*math.sin(alpha_rad)+195.5
-			x = -( -(solution[0][0]-195.5)*math.sin(alpha_rad) + (-(solution[0][1]-215.5))*math.cos(alpha_rad)-215.5)
+			y =  (solution[0][0]-215.5)*math.cos(alpha_rad) + (-(solution[0][1]-195.5))*math.sin(alpha_rad)+215.5
+			x = -( -(solution[0][0]-215.5)*math.sin(alpha_rad) + (-(solution[0][1]-195.5))*math.cos(alpha_rad)-195.5)
 			point = (x/100.0,y/100.0)
+			
 
 		
 	elif (point_input[0]>=415):
@@ -110,9 +111,8 @@ def find_point(point_input,lane, distance):
 			alpha_rad = alpha*math.pi/180
 		
 			#translation to the coordinate origin; rotation of the point; translation back
-			x =  (solution[0][0]-195.5)*math.cos(alpha_rad) + (-(solution[0][1]-215.5))*math.sin(alpha_rad)+195.5
-			y = -( -(solution[0][0]-195.5)*math.sin(alpha_rad) + (-(solution[0][1]-215.5))*math.cos(alpha_rad)-215.5)
-
+			y =  (solution[0][0]-215.5)*math.cos(alpha_rad) + (-(solution[0][1]-195.5))*math.sin(alpha_rad)+215.5
+			x = -( -(solution[0][0]-215.5)*math.sin(alpha_rad) + (-(solution[0][1]-195.5))*math.cos(alpha_rad)-195.5)
 			#(x,y), x down, y right
 			point =(x/100.0,y/100.0)
 		
