@@ -84,7 +84,7 @@ def find_point(point_input,lane, distance):
 		#line from the input point to the center of the 1.circle
 		m = (404.5 - point_input[0])/(215.5 - point_input[1])
 		b = 404.5 - m * 215.5
-		
+		print m,b
 		
 		if(point_input[1]==215.5):
 			if lane == 1:
@@ -111,7 +111,7 @@ def find_point(point_input,lane, distance):
 			#nearest point
 			point = (solution[0][1]/100, solution[0][0]/100)
 			
-			alpha =( distance * 360 / (2* math.pi * new_radius))
+			alpha =-( distance * 360 / (2* math.pi * new_radius))
 			alpha_rad = alpha*math.pi/180
 		
 			#translation to the coordinate origin; rotation of the point; translation back
